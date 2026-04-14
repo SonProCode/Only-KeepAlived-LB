@@ -30,5 +30,5 @@ echo "=== IPVS TABLE ==="
 ipvsadm -L -n
 
 echo "=== Start Keepalived ==="
-# exec phải là lệnh cuối cùng
+
 exec keepalived -n -l -f /etc/keepalived/keepalived.conf

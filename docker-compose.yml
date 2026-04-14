@@ -1,0 +1,61 @@
+services:
+  lb1:
+    image: ubuntu:20.04
+    container_name: lb1
+    privileged: true
+    networks:
+      lab_net:
+        ipv4_address: 172.20.0.2
+    volumes:
+      - ./lb1/keepalived.conf:/etc/keepalived/keepalived.conf
+      - ./lb1/init.sh:/init.sh
+      - ./lb1/check_backends.sh:/check_backends.sh
+    command: >
+      bash -c "
+      apt update &&
+      DEBIAN_FRONTEND=noninteractive apt install -y keepalived ipvsadm iproute2 iptables curl &&
+      chmod +x /init.sh &&
+      /init.sh
+      "
+
+  lb2:
+    image: ubuntu:20.04
+    container_name: lb2
+    privileged: true
+    networks:
+      lab_net:
+        ipv4_address: 172.20.0.3
+    volumes:
+      - ./lb2/keepalived.conf:/etc/keepalived/keepalived.conf
+      - ./lb2/init.sh:/init.sh
+      - ./lb2/check_backends.sh:/check_backends.sh
+    command: >
+      bash -c "
+      apt update &&
+      DEBIAN_FRONTEND=noninteractive apt install -y keepalived ipvsadm iproute2 iptables curl &&
+      chmod +x /init.sh &&
+      /init.sh
+      "
+
+  backend1:
+    image: python:3.9-slim
+    container_name: backend1
+    networks:
+      lab_net:
+        ipv4_address: 172.20.0.10
+    command: bash -c "echo 'Backend 1' > index.html && python3 -m http.server 80"
+
+  backend2:
+    image: python:3.9-slim
+    container_name: backend2
+    networks:
+      lab_net:
+        ipv4_address: 172.20.0.11
+    command: bash -c "echo 'Backend 2' > index.html && python3 -m http.server 80"
+
+networks:
+  lab_net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/24
